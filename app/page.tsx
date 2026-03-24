@@ -1,103 +1,272 @@
-import Image from "next/image";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import {
+  buildWhatsAppUrl,
+  currentMoisISO,
+  formatDate,
+  formatMois,
+  getStatutClasses,
+  getStatutLabel,
+  replaceTemplateVars,
+  renderStars,
+} from "@/lib/utils";
+import type {
+  CoursType,
+  EleveWithCotisation,
+  MessageTemplate,
+} from "@/types";
+import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createServerClient();
+  const mois = currentMoisISO();
+
+  const [
+    { data: eleves },
+    { data: cotisationsMois },
+    { data: elevesRecents },
+    { data: templates },
+  ] = await Promise.all([
+    supabase.from("eleves").select("*").order("created_at", { ascending: false }),
+    supabase.from("cotisations").select("*").eq("mois", mois),
+    supabase
+      .from("eleves")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("message_templates")
+      .select("*")
+      .eq("titre", "Rappel cotisation")
+      .limit(1),
+  ]);
+
+  const totalEleves = eleves?.length ?? 0;
+  const countPaye =
+    cotisationsMois?.filter((c) => c.statut === "paye").length ?? 0;
+  const countRetard =
+    cotisationsMois?.filter((c) => c.statut === "retard").length ?? 0;
+  const countEnAttente =
+    cotisationsMois?.filter((c) => c.statut === "en_attente").length ?? 0;
+
+  const elevesAlerte: EleveWithCotisation[] = (cotisationsMois ?? [])
+    .filter(
+      (c) => c.statut === "retard" || c.statut === "en_attente",
+    )
+    .map((c) => ({
+      ...eleves!.find((e) => e.id === c.eleve_id)!,
+      cotisation_mois: c,
+    }));
+
+  const rappelTemplate: MessageTemplate | null = templates?.[0] ?? null;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Tableau de bord
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">{formatMois(mois)}</p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="mb-8 grid grid-cols-4 gap-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <span className="block text-3xl font-bold text-gray-900">
+            {totalEleves}
+          </span>
+          <span className="mt-1 block text-sm text-gray-500">
+            Élèves inscrits
+          </span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <span className="block text-3xl font-bold text-green-600">
+            {countPaye}
+          </span>
+          <span className="mt-1 block text-sm text-gray-500">
+            Payé ce mois
+          </span>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <span className="block text-3xl font-bold text-red-600">
+            {countRetard}
+          </span>
+          <span className="mt-1 block text-sm text-gray-500">En retard</span>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <span className="block text-3xl font-bold text-yellow-600">
+            {countEnAttente}
+          </span>
+          <span className="mt-1 block text-sm text-gray-500">En attente</span>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="mb-3 text-base font-semibold text-gray-900">Alertes</h2>
+
+        {elevesAlerte.length === 0 ? (
+          <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            ✓ Aucun retard ce mois
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Élève
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Cours
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Statut
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Montant
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    WhatsApp
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {elevesAlerte.map((eleve) => {
+                  const c = eleve.cotisation_mois!;
+                  const waMessage = rappelTemplate
+                    ? replaceTemplateVars(rappelTemplate.contenu, {
+                        prenom: eleve.prenom,
+                        nom: eleve.nom,
+                        montant: c.montant.toString(),
+                        mois: formatMois(c.mois),
+                        cours: eleve.cours.join(", "),
+                      })
+                    : "";
+                  return (
+                    <tr key={eleve.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/eleves/${eleve.id}`}
+                          className="font-medium text-gray-900 hover:underline"
+                        >
+                          {eleve.prenom} {eleve.nom}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          {eleve.cours.map((co: CoursType) => (
+                            <span
+                              key={co}
+                              className="rounded bg-gray-100 px-2 py-0.5 text-xs capitalize text-gray-700"
+                            >
+                              {co}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${getStatutClasses(c.statut)}`}
+                        >
+                          {getStatutLabel(c.statut)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {c.montant} €
+                      </td>
+                      <td className="px-4 py-3">
+                        {eleve.telephone ? (
+                          <a
+                            href={buildWhatsAppUrl(eleve.telephone, waMessage)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-green-700 hover:underline"
+                          >
+                            WA ↗
+                          </a>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-0">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900">
+            Ajouts récents
+          </h2>
+          <Link
+            href="/eleves"
+            className="text-sm text-gray-500 hover:text-gray-900"
+          >
+            Voir tous →
+          </Link>
+        </div>
+
+        {!elevesRecents?.length ? (
+          <p className="text-sm text-gray-400">Aucun élève pour le moment.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Élève
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Cours
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Niveau
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Inscrit le
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {elevesRecents.map((eleve) => (
+                  <tr key={eleve.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/eleves/${eleve.id}`}
+                        className="font-medium text-gray-900 hover:underline"
+                      >
+                        {eleve.prenom} {eleve.nom}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {eleve.cours.map((co: CoursType) => (
+                          <span
+                            key={co}
+                            className="rounded bg-gray-100 px-2 py-0.5 text-xs capitalize text-gray-700"
+                          >
+                            {co}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="tracking-wider text-amber-500">
+                        {renderStars(eleve.niveau)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {formatDate(eleve.created_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
