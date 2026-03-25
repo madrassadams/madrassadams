@@ -1,33 +1,31 @@
 "use client";
 
-import { createEleve, updateEleve } from "@/app/eleves/actions";
+import { useActionState, useEffect, useState } from "react";
 import type { Eleve } from "@/types";
 import Link from "next/link";
-import { useState } from "react";
+import PhoneField from "@/components/PhoneInput";
 
 const inputClass =
   "w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none";
 
 type Props = {
+  action: (prevState: unknown, formData: FormData) => Promise<unknown>;
   defaultValues?: Partial<Eleve>;
-  action: "create" | "edit";
-  eleveId?: string;
 };
 
-export default function EleveForm({
-  defaultValues,
-  action,
-  eleveId,
-}: Props) {
+export default function EleveForm({ action, defaultValues }: Props) {
+  const [, formAction, pending] = useActionState(action, null);
   const [niveau, setNiveau] = useState(defaultValues?.niveau ?? 1);
   const [selectedCours, setSelectedCours] = useState<string[]>(
     defaultValues?.cours ?? [],
   );
 
-  const boundUpdate =
-    action === "edit" && eleveId
-      ? updateEleve.bind(null, eleveId)
-      : undefined;
+  useEffect(() => {
+    setNiveau(defaultValues?.niveau ?? 1);
+    setSelectedCours(defaultValues?.cours ?? []);
+  }, [defaultValues?.niveau, defaultValues?.cours]);
+
+  const eleveId = defaultValues?.id;
 
   function toggleCours(value: string) {
     setSelectedCours((prev) =>
@@ -38,10 +36,7 @@ export default function EleveForm({
   }
 
   return (
-    <form
-      action={action === "create" ? createEleve : boundUpdate}
-      className="mx-auto flex max-w-lg flex-col gap-5"
-    >
+    <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-5">
       <div className="flex flex-col gap-1">
         <label htmlFor="prenom" className="text-sm font-medium text-gray-700">
           Prénom
@@ -123,16 +118,12 @@ export default function EleveForm({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="telephone" className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-gray-700">
           Téléphone
         </label>
-        <input
-          id="telephone"
+        <PhoneField
+          defaultValue={defaultValues?.telephone}
           name="telephone"
-          type="text"
-          placeholder="+33 6 12 34 56 78"
-          defaultValue={defaultValues?.telephone ?? ""}
-          className={inputClass}
         />
       </div>
 
@@ -152,9 +143,12 @@ export default function EleveForm({
       <div className="flex flex-col gap-3">
         <button
           type="submit"
-          className="w-full rounded bg-gray-900 py-2 text-sm text-white"
+          disabled={pending}
+          className={`w-full rounded bg-gray-900 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50 ${
+            pending ? "opacity-50" : "hover:bg-gray-700"
+          }`}
         >
-          Enregistrer
+          {pending ? "Enregistrement..." : "Enregistrer"}
         </button>
         <Link
           href={eleveId ? `/eleves/${eleveId}` : "/eleves"}

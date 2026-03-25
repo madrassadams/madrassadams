@@ -49,9 +49,31 @@ function validateEleveForm(formData: FormData) {
   return result.data;
 }
 
-export async function createEleve(formData: FormData): Promise<void> {
+export async function createEleve(
+  prevState: unknown,
+  formData: FormData,
+): Promise<unknown> {
+  void prevState;
   const data = validateEleveForm(formData);
   const supabase = await createServerClient();
+
+  // Guard against double-submit inserting duplicate rows.
+  // If an identical (prenom, nom) record exists within the last 5 seconds,
+  // consider it the same submit and redirect to the existing id.
+  const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+  const { data: existing, error: existingError } = await supabase
+    .from("eleves")
+    .select("id")
+    .eq("prenom", data.prenom)
+    .eq("nom", data.nom)
+    .gte("created_at", fiveSecondsAgo)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) throw new Error(existingError.message);
+  if (existing?.id) {
+    redirect("/eleves/" + existing.id);
+  }
 
   const { data: row, error } = await supabase
     .from("eleves")
@@ -72,7 +94,12 @@ export async function createEleve(formData: FormData): Promise<void> {
   redirect("/eleves/" + row.id);
 }
 
-export async function updateEleve(id: string, formData: FormData): Promise<void> {
+export async function updateEleve(
+  id: string,
+  prevState: unknown,
+  formData: FormData,
+): Promise<unknown> {
+  void prevState;
   const data = validateEleveForm(formData);
   const supabase = await createServerClient();
 

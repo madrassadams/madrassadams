@@ -41,8 +41,16 @@ export default async function Home() {
   ]);
 
   const totalEleves = eleves?.length ?? 0;
-  const countPaye =
-    cotisationsMois?.filter((c) => c.statut === "paye").length ?? 0;
+  const totalPaye =
+    cotisationsMois
+      ?.filter((c) => c.statut === "paye")
+      .reduce((sum, c) => sum + Number(c.montant), 0) ?? 0;
+  const totalPayeFormatted = totalPaye.toLocaleString("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
   const countRetard =
     cotisationsMois?.filter((c) => c.statut === "retard").length ?? 0;
   const countEnAttente =
@@ -78,11 +86,11 @@ export default async function Home() {
           </span>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <span className="block text-3xl font-bold text-green-600">
-            {countPaye}
+          <span className="block text-2xl font-bold text-green-600">
+            {totalPayeFormatted}
           </span>
           <span className="mt-1 block text-sm text-gray-500">
-            Payé ce mois
+            Encaissé ce mois
           </span>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-5">
