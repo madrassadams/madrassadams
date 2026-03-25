@@ -41,14 +41,14 @@ export default function EleveFilters({ eleves }: Props) {
           placeholder="Rechercher..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-48 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+          className="w-full sm:w-64 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
         />
         <select
           value={filterCours}
           onChange={(e) =>
             setFilterCours(e.target.value as "all" | CoursType)
           }
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
         >
           <option value="all">Tous les cours</option>
           <option value="arabe">Arabe</option>
@@ -59,7 +59,7 @@ export default function EleveFilters({ eleves }: Props) {
           onChange={(e) =>
             setFilterStatut(e.target.value as "all" | StatutCotisation)
           }
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
         >
           <option value="all">Tous les statuts</option>
           <option value="paye">Payé</option>
@@ -90,7 +90,8 @@ export default function EleveFilters({ eleves }: Props) {
       {/* Table */}
       {filtered.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="w-full text-sm">
+          <div className="w-full overflow-x-auto">
+            <table className="min-w-[820px] w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
                 {[
@@ -161,7 +162,8 @@ export default function EleveFilters({ eleves }: Props) {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       ) : null}
     </>

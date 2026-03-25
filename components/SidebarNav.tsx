@@ -10,7 +10,11 @@ const links = [
   { href: '/messages',     label: 'Messages'        },
 ]
 
-export default function SidebarNav() {
+type Props = {
+  onNavigate?: () => void
+}
+
+export default function SidebarNav({ onNavigate }: Props) {
   const pathname = usePathname()
 
   return (
@@ -24,6 +28,7 @@ export default function SidebarNav() {
           <li key={href}>
             <Link
               href={href}
+              onClick={() => onNavigate?.()}
               style={{
                 display: 'block',
                 padding: '0.625rem 1.5rem',

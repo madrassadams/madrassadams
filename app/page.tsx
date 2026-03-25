@@ -76,31 +76,31 @@ export default async function Home() {
         <p className="mt-1 text-sm text-gray-500">{formatMois(mois)}</p>
       </div>
 
-      <div className="mb-8 grid grid-cols-4 gap-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <span className="block text-3xl font-bold text-gray-900">
+      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+          <span className="block text-3xl font-bold text-gray-900 md:text-3xl">
             {totalEleves}
           </span>
           <span className="mt-1 block text-sm text-gray-500">
             Élèves inscrits
           </span>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <span className="block text-2xl font-bold text-green-600">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+          <span className="block whitespace-nowrap text-2xl font-bold text-green-600">
             {totalPayeFormatted}
           </span>
           <span className="mt-1 block text-sm text-gray-500">
             Encaissé ce mois
           </span>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <span className="block text-3xl font-bold text-red-600">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+          <span className="block text-3xl font-bold text-red-600 md:text-3xl">
             {countRetard}
           </span>
           <span className="mt-1 block text-sm text-gray-500">En retard</span>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <span className="block text-3xl font-bold text-yellow-600">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+          <span className="block text-3xl font-bold text-yellow-600 md:text-3xl">
             {countEnAttente}
           </span>
           <span className="mt-1 block text-sm text-gray-500">En attente</span>
@@ -116,7 +116,8 @@ export default async function Home() {
           </p>
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <table className="w-full text-sm">
+            <div className="w-full overflow-x-auto">
+              <table className="min-w-[720px] w-full text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -198,7 +199,8 @@ export default async function Home() {
                   );
                 })}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         )}
       </div>
@@ -220,7 +222,8 @@ export default async function Home() {
           <p className="text-sm text-gray-400">Aucun élève pour le moment.</p>
         ) : (
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <table className="w-full text-sm">
+            <div className="w-full overflow-x-auto">
+              <table className="min-w-[720px] w-full text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -271,7 +274,8 @@ export default async function Home() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         )}
       </div>

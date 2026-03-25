@@ -23,11 +23,11 @@ export default async function ElevesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-gray-900">Élèves</h1>
         <Link
           href="/eleves/nouveau"
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700"
+          className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-900 px-4 text-base text-white transition-colors hover:bg-gray-700"
         >
           Ajouter un élève
         </Link>
