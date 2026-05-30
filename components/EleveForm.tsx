@@ -117,6 +117,26 @@ export default function EleveForm({ action, defaultValues }: Props) {
         <input type="hidden" name="niveau" value={niveau} />
       </div>
 
+      {!eleveId && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="montant" className="text-sm font-medium text-gray-700">
+            Cotisation du mois (€)
+          </label>
+          <input
+            id="montant"
+            name="montant"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Ex : 30"
+            className={inputClass}
+          />
+          <span className="text-xs text-gray-400">
+            Laissez vide pour ne pas créer de cotisation maintenant.
+          </span>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700">
           Téléphone

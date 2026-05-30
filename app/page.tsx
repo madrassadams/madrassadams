@@ -56,14 +56,41 @@ export default async function Home() {
   const countEnAttente =
     cotisationsMois?.filter((c) => c.statut === "en_attente").length ?? 0;
 
+  const formatEuros = (montant: number) =>
+    montant.toLocaleString("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  const totalRetard =
+    cotisationsMois
+      ?.filter((c) => c.statut === "retard")
+      .reduce((sum, c) => sum + Number(c.montant), 0) ?? 0;
+  const totalEnAttente =
+    cotisationsMois
+      ?.filter((c) => c.statut === "en_attente")
+      .reduce((sum, c) => sum + Number(c.montant), 0) ?? 0;
+
   const elevesAlerte: EleveWithCotisation[] = (cotisationsMois ?? [])
-    .filter(
-      (c) => c.statut === "retard" || c.statut === "en_attente",
-    )
+    .filter((c) => c.statut === "retard")
     .map((c) => ({
       ...eleves!.find((e) => e.id === c.eleve_id)!,
       cotisation_mois: c,
-    }));
+    }))
+    .sort((a, b) =>
+      `${a.prenom} ${a.nom}`.localeCompare(`${b.prenom} ${b.nom}`, "fr"),
+    );
+
+  const elevesEnAttente: EleveWithCotisation[] = (cotisationsMois ?? [])
+    .filter((c) => c.statut === "en_attente")
+    .map((c) => ({
+      ...eleves!.find((e) => e.id === c.eleve_id)!,
+      cotisation_mois: c,
+    }))
+    .sort((a, b) =>
+      `${a.prenom} ${a.nom}`.localeCompare(`${b.prenom} ${b.nom}`, "fr"),
+    );
 
   const rappelTemplate: MessageTemplate | null = templates?.[0] ?? null;
 
@@ -93,22 +120,38 @@ export default async function Home() {
             Encaissé ce mois
           </span>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+        <a
+          href="#alertes"
+          className="rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-gray-300 hover:bg-gray-50 md:p-5"
+        >
           <span className="block text-3xl font-bold text-red-600 md:text-3xl">
             {countRetard}
           </span>
-          <span className="mt-1 block text-sm text-gray-500">En retard</span>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+          <span className="mt-1 block text-sm text-gray-500">
+            En retard · {formatEuros(totalRetard)}
+          </span>
+        </a>
+        <a
+          href="#en-attente"
+          className="rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-gray-300 hover:bg-gray-50 md:p-5"
+        >
           <span className="block text-3xl font-bold text-yellow-600 md:text-3xl">
             {countEnAttente}
           </span>
-          <span className="mt-1 block text-sm text-gray-500">En attente</span>
-        </div>
+          <span className="mt-1 block text-sm text-gray-500">
+            En attente · {formatEuros(totalEnAttente)}
+          </span>
+        </a>
       </div>
 
-      <div className="mb-8">
-        <h2 className="mb-3 text-base font-semibold text-gray-900">Alertes</h2>
+      <div id="alertes" className="mb-8 scroll-mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900">En retard</h2>
+          <span className="text-sm font-medium text-red-700">
+            {countRetard} élève{countRetard > 1 ? "s" : ""} ·{" "}
+            {formatEuros(totalRetard)}
+          </span>
+        </div>
 
         {elevesAlerte.length === 0 ? (
           <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
@@ -199,6 +242,102 @@ export default async function Home() {
                   );
                 })}
               </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div id="en-attente" className="mb-8 scroll-mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900">
+            En attente
+          </h2>
+          <span className="text-sm font-medium text-yellow-700">
+            {countEnAttente} élève{countEnAttente > 1 ? "s" : ""} ·{" "}
+            {formatEuros(totalEnAttente)}
+          </span>
+        </div>
+
+        {elevesEnAttente.length === 0 ? (
+          <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            ✓ Aucune cotisation en attente ce mois
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="w-full overflow-x-auto">
+              <table className="min-w-[640px] w-full text-sm">
+                <thead className="border-b border-gray-200 bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Élève
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Cours
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Montant
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      WhatsApp
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {elevesEnAttente.map((eleve) => {
+                    const c = eleve.cotisation_mois!;
+                    const waMessage = rappelTemplate
+                      ? replaceTemplateVars(rappelTemplate.contenu, {
+                          prenom: eleve.prenom,
+                          nom: eleve.nom,
+                          montant: c.montant.toString(),
+                          mois: formatMois(c.mois),
+                          cours: eleve.cours.join(", "),
+                        })
+                      : "";
+                    return (
+                      <tr key={eleve.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/eleves/${eleve.id}`}
+                            className="font-medium text-gray-900 hover:underline"
+                          >
+                            {eleve.prenom} {eleve.nom}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1">
+                            {eleve.cours.map((co: CoursType) => (
+                              <span
+                                key={co}
+                                className="rounded bg-gray-100 px-2 py-0.5 text-xs capitalize text-gray-700"
+                              >
+                                {co}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {c.montant} €
+                        </td>
+                        <td className="px-4 py-3">
+                          {eleve.telephone ? (
+                            <a
+                              href={buildWhatsAppUrl(eleve.telephone, waMessage)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-green-700 hover:underline"
+                            >
+                              WA ↗
+                            </a>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </div>

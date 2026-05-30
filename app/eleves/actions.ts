@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { inputValueToMois } from "@/lib/utils";
+import { currentMoisISO, inputValueToMois } from "@/lib/utils";
 import type { CoursType, StatutCotisation } from "@/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -90,6 +90,18 @@ export async function createEleve(
 
   if (error) throw new Error(error.message);
   if (!row?.id) throw new Error("Création impossible");
+
+  const montantRaw = Number(formData.get("montant"));
+  if (Number.isFinite(montantRaw) && montantRaw > 0) {
+    const mois = currentMoisISO();
+    await supabase.from("cotisations").insert({
+      eleve_id: row.id,
+      mois,
+      montant: montantRaw,
+      statut: "en_attente",
+      paid_at: null,
+    });
+  }
 
   redirect("/eleves/" + row.id);
 }
