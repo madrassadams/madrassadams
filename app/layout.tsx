@@ -7,7 +7,7 @@ import ResponsiveShell from '@/components/ResponsiveShell'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Madrasa',
+  title: "MADRASSADAM'S",
   description: 'Gestion des élèves',
 }
 

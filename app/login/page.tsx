@@ -10,7 +10,7 @@ export default async function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-10 shadow-none">
         <h1 className="mb-1 text-center text-2xl font-semibold tracking-wide">
-          Madrasa
+          MADRASSADAM&apos;S
         </h1>
         <p className="mb-8 text-center text-sm text-gray-400">
           Espace administrateur

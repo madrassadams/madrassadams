@@ -49,7 +49,7 @@ export default function ResponsiveShell({ children }: Props) {
           <span className="text-2xl leading-none">≡</span>
         </button>
         <div className="text-base font-semibold tracking-wide text-gray-900">
-          Madrasa
+          MADRASSADAM&apos;S
         </div>
       </div>
 
@@ -71,8 +71,8 @@ export default function ResponsiveShell({ children }: Props) {
       >
         <div className="flex h-full flex-col">
           <div className="flex h-14 items-center justify-between border-b border-gray-200 px-6 md:h-auto md:py-6">
-            <span className="text-[1.1rem] font-semibold tracking-[0.06em] uppercase">
-              Madrasa
+            <span className="text-[1.1rem] font-semibold tracking-[0.06em]">
+              MADRASSADAM&apos;S
             </span>
             <button
               type="button"
